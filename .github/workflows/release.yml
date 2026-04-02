@@ -1,93 +1,109 @@
-name: Release
+name: Release & Export
+
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 jobs:
-  build-and-upload:
-    name: Build (${{ matrix.target }})
-    runs-on: ${{ matrix.os }}
-    permissions:
-      contents: write
+  build:
+    name: Build (${ matrix.bin } - ${ matrix.target })
+    runs-on: ${ matrix.os }
     strategy:
       fail-fast: false
       matrix:
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-            artifact_name: tp
-            release_name: tp-linux-amd64
+            bin: tp
+            features: ""
+            export_libs: false
+            package: true
+            docker: false
+            use_cross: false
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            bin: tp
+            features: ""
+            export_libs: false
+            package: true
+            docker: false
+            use_cross: true
+          - target: i686-unknown-linux-gnu
+            os: ubuntu-latest
+            bin: tp
+            features: ""
+            export_libs: false
+            package: true
+            docker: false
+            use_cross: true
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
-            artifact_name: tp
-            release_name: tp-linux-arm64
+            bin: tp
+            features: ""
+            export_libs: false
+            package: true
+            docker: false
+            use_cross: true
           - target: x86_64-pc-windows-msvc
             os: windows-latest
-            artifact_name: tp.exe
-            release_name: tp-windows-amd64.exe
-
+            bin: tp
+            features: ""
+            export_libs: false
+            package: true
+            docker: false
+            use_cross: false
+          - target: i686-pc-windows-msvc
+            os: windows-latest
+            bin: tp
+            features: ""
+            export_libs: false
+            package: true
+            docker: false
+            use_cross: true
+          - target: aarch64-pc-windows-msvc
+            os: windows-latest
+            bin: tp
+            features: ""
+            export_libs: false
+            package: true
+            docker: false
+            use_cross: false
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            bin: tp
+            features: ""
+            export_libs: false
+            package: true
+            docker: false
+            use_cross: false
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            bin: tp
+            features: ""
+            export_libs: false
+            package: true
+            docker: false
+            use_cross: false
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@v6.0.2
+      - name: Refinery Build
+        uses: sircesarium/refinery-rs@v2.0
         with:
-          targets: ${{ matrix.target }}
+          target: ${ matrix.target }
+          binary-name: ${ matrix.bin }
+          features: ${ matrix.features }
+          export-libs: ${ matrix.export_libs }
+          package: ${ matrix.package }
+          publish-docker: ${ matrix.docker }
+          use-cross: ${ matrix.use_cross }
+          github-token: ${ secrets.GITHUB_TOKEN }
 
-      - name: Install Cross
-        if: matrix.os == 'ubuntu-latest'
-        run: cargo install cross --git https://github.com/cross-rs/cross.git
-
-      - name: Build Binary
-        run: |
-          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            cross build --release --target ${{ matrix.target }} --features cli
-          else
-            cargo build --release --target ${{ matrix.target }} --features cli
-          fi
-        shell: bash
-
-      - name: Prepare Artifact
-        run: |
-          cd target/${{ matrix.target }}/release
-          mv ${{ matrix.artifact_name }} ${{ matrix.release_name }}
-        shell: bash
-
-      - name: Release Binaries
-        uses: softprops/action-gh-release@v2
-        with:
-          files: target/${{ matrix.target }}/release/${{ matrix.release_name }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  docker-and-publish:
-    name: Docker & Crates.io
-    needs: build-and-upload
+  publish-crates:
+    name: Publish to Crates.io
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
+    needs: build
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: |
-            ghcr.io/sircesarium/t-port:latest
-            ghcr.io/sircesarium/t-port:${{ github.ref_name }}
-
-      - name: Cargo Publish
-        run: cargo publish --token ${{ secrets.CRATES_TOKEN }}
-        continue-on-error: true
+      - uses: actions/checkout@v6.0.2
+      - name: Publish
+        run: cargo publish --token ${{ secrets.CRATES_IO_TOKEN }}

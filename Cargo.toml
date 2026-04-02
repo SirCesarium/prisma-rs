@@ -1,6 +1,6 @@
 [package]
 name = "t-port"
-version = "1.1.2"
+version = "1.1.3"
 edition = "2024"
 authors = ["SirCesarium"]
 description = "A lightweight L4 protocol multiplexer with zero-copy routing."
