@@ -9,7 +9,7 @@ repository = "https://github.com/sircesarium/t-port"
 homepage = "https://github.com/sircesarium/t-port"
 documentation = "https://docs.rs/t-port"
 readme = "README.md"
-metadata = { deb = { maintainer = "SirCesarium <contact.cesarmarcano@gmail.com>", description = "L4 Rust multiplexer" } , rpm = { package = { license = "MIT" } } }
+metadata = { deb = { maintainer = "SirCesarium <contact.cesarmarcano@gmail.com>", description = "L4 Rust multiplexer" , extended-description = "A surgical Rust tool." } , rpm = { package = { license = "MIT" } } }
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"], optional = true }
