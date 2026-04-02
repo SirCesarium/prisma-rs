@@ -1,6 +1,6 @@
 [package]
 name = "t-port"
-version = "1.1.1"
+version = "1.1.5"
 edition = "2024"
 authors = ["SirCesarium"]
 description = "A lightweight L4 protocol multiplexer with zero-copy routing."
@@ -9,6 +9,7 @@ repository = "https://github.com/sircesarium/t-port"
 homepage = "https://github.com/sircesarium/t-port"
 documentation = "https://docs.rs/t-port"
 readme = "README.md"
+metadata = { deb = { maintainer = "SirCesarium <contact.cesarmarcano@gmail.com>", description = "L4 Rust multiplexer" } , rpm = { package = { license = "MIT" } } }
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"], optional = true }
